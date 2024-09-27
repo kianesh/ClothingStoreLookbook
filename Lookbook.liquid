@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Swiper demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
+    <style>
+        html, body {
+            position: relative;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background: #eee;
+            font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
+            font-size: 14px;
+            color: #000;
+        }
+        
+        .lookbook-container {
+            display: flex;
+            width: 100%;
+            max-width: 700px;
+            margin: 0px auto;
+        
+        .main-image-container {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        .swiper-slide img {
+            width: 100%;
+            height: 100%;
+            min-height: 500px;
+            max-height: 500px;
+            object-fit: cover;
+
+        }
+      
+        .info-container {
+            width: 500px;
+            display: flex;
+            justify-content: space-between;
+            line-height: 10px;
+            gap: 0px;
+            align-items: left;
+            background-color: #fff;
+            color: #000;
+            padding: 0px;
+            margin-top: 10px;
+        }
+        .info-container h3 {
+            margin:0;
+        }
+
+        .thumbnails-container {
+            width: 250px;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(48px, 48px));
+            grid-template-rows: repeat(3, minmax(60px, 60px));
+            grid-gap: 10px;
+            margin-left: 15px;
+        }
+        .thumbnail {
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+            min-height: 60px;
+            max-height: 60px;
+            max-width: 48px;
+            object-fit: cover;
+        }
+        @media screen and (max-width:700px) {
+          .thumbnails-container{
+            display:none;
+          }
+          .lookbook-container, .main-image-container, .info-container{
+            max-width: 400px;
+            margin: 10px auto;
+          }
+        }
+    </style>
+</head>
+<body>
+    <div class="lookbook-container">
+        <div class="main-image-container">
+            <div class="swiper main-swiper">
+                <div class="swiper-wrapper">
+                    {% for block in section.blocks %}
+                    <div class="swiper-slide" data-title="{{ block.settings.title }}" data-description1="{{ block.settings.description1 }}" data-description2="{{ block.settings.description2 }}">
+                        <img src="{{ block.settings.image | img_url: '1517x1896' }}" alt="{{ block.settings.title }}" />
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="info-container">
+                    <div>
+                        <h3 id="current-title"></h3>
+                        <p id="current-description1"></p>
+                        <p id="current-description2"></p>
+                    </div>
+                  <div class="slide-counter">1 / {{ section.blocks.size }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="thumbnails-container">
+            {% for block in section.blocks %}
+            <img class="thumbnail" src="{{ block.settings.image | img_url: '60x60' }}" alt="Thumbnail {{ forloop.index }}" onclick="changeSlide({{ forloop.index0 }})" />
+            {% endfor %}
+        </div>
+    </div>
+
+<!-- Your HTML structure remains unchanged -->
+
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+    // Ensure the DOM is fully loaded before initializing Swiper and setting up event listeners
+    document.addEventListener('DOMContentLoaded', function () {
+        var mainSwiper = new Swiper(".main-swiper", {
+            spaceBetween: 10,
+            init: false, // Disable automatic initialization
+            on: {
+                init: function () {
+                    updateInfo(this.activeIndex); // Update on init
+                    setupThumbnails(this); // Setup thumbnails once Swiper is initialized
+                },
+                slideChange: function () {
+                    updateInfo(this.activeIndex); // Update on slide change
+                }
+            }
+        });
+
+        function updateInfo(index) {
+            const slide = mainSwiper.slides[index];
+            const title = slide.dataset.title; // Use dataset to access data attributes
+            const description1 = slide.dataset.description1;
+            const description2 = slide.dataset.description2;
+            document.getElementById('current-title').textContent = title || 'Default Title';
+            document.getElementById('current-description1').textContent = description1;
+            document.getElementById('current-description2').textContent = description2;
+            document.querySelector('.slide-counter').textContent = `${index + 1} / ${mainSwiper.slides.length}`;
+        }
+
+        function setupThumbnails(swiper) {
+            const thumbnails = document.querySelectorAll('.thumbnail');
+            thumbnails.forEach((thumbnail, index) => {
+                thumbnail.addEventListener('click', () => {
+                    swiper.slideTo(index); // Change slide when thumbnail is clicked
+                    updateInfo(index); // Also update the info accordingly
+                });
+            });
+        }
+
+        // Manually initialize Swiper
+        mainSwiper.init();
+    });
+</script>
+
+
+</body>
+</html>
+
+
+{% schema %}
+{
+    "name": "Image Slider",
+    "settings": [
+        {
+            "type": "text",
+            "id": "heading",
+            "label": "Heading",
+            "default": "Discover Our Nature Collection"
+        }
+    ],
+    "blocks": [
+        {
+            "type": "image",
+            "name": "Image Slide",
+            "settings": [
+                {
+                    "type": "image_picker",
+                    "id": "image",
+                    "label": "Image"
+                },
+                {
+                    "type": "text",
+                    "id": "title",
+                    "label": "Title",
+                    "default": "Default Title"
+                },
+                {
+                    "type": "text",
+                    "id": "description1",
+                    "label": "Description 1",
+                    "default": "Default description of the image."
+                },
+                {
+                    "type": "text",
+                    "id": "description2",
+                    "label": "Description 2",
+                    "default": "Default description of the image."
+                }                
+            ]
+        }
+    ],
+    "presets": [
+        {
+            "name": "Default Image Slider"
+        }
+    ]
+}
+{% endschema %}
